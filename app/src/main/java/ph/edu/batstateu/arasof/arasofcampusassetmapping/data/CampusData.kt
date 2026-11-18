@@ -2,166 +2,253 @@ package ph.edu.batstateu.arasof.arasofcampusassetmapping.data
 
 import ph.edu.batstateu.arasof.arasofcampusassetmapping.model.*
 
-data class FloorData(val rooms: List<Room>, val assets: List<Asset>)
+data class FloorData(
+    val rooms: List<Room>,
+    val assets: List<Asset>,
+    val zones: List<Zone> = emptyList(),
+    /** width / height of the floor-plan drawing */
+    val aspect: Float = 1.2f,
+    /** small note shown above the plan (e.g. "placeholder layout") */
+    val note: String? = null
+)
 
 object CampusData {
-    /** Size in pixels of res/drawable/campus_map.png. If you swap in a bigger picture of the same
-     *  shape you can keep these numbers: tap areas scale with the picture. */
-    const val MAP_W = 928f
-    const val MAP_H = 1134f
+    /** Size in pixels of res/drawable/campus_map.png. If you swap in a bigger or smaller picture of the
+     *  same shape you can keep these numbers: tap areas scale with the picture. */
+    const val MAP_W = 1860f
+    const val MAP_H = 2270f
 
     // Each building's tap area ("shapes") was traced from the map picture, in picture pixels.
+    // Buildings 1-25 are the numbers printed on the map. 26+ are the new things in the legend:
+    // electrical boxes, segregation stations and guard houses (information only, no floor plan).
     val buildings = listOf(
         Building(
-            1, "Ibaan Building", Category.MIXED_USE, 641f, 1020f, 141f, 52f, floorCount = 3, roomsPerRow = 3,
+            1, "Ibaan Building", Category.MIXED_USE, 1280f, 2040f, 287f, 109f, floorCount = 2, roomsPerRow = 3,
             shapes = listOf(
-                listOf(644f to 1023f, 641f to 1057f, 643f to 1070f, 771f to 1072f, 782f to 1063f, 780f to 1024f, 646f to 1020f)
+                listOf(1287f to 2046f, 1280f to 2140f, 1286f to 2144f, 1543f to 2149f, 1567f to 2131f, 1565f to 2051f, 1560f to 2047f, 1291f to 2040f)
             )
         ),
         Building(
-            2, "VIP Corals - Nasugbu Marine Research Station", Category.RESEARCH, 822f, 1022f, 85f, 44f, floorCount = 2, roomsPerRow = 2,
+            2, "VIP Corals - Nasugbu Marine Research Station", Category.RESEARCH, 1644f, 2045f, 175f, 95f, floorCount = 1, roomsPerRow = 2,
             shapes = listOf(
-                listOf(907f to 1051f, 899f to 1051f, 896f to 1047f, 896f to 1039f, 890f to 1035f, 888f to 1022f, 849f to 1023f, 848f to 1028f, 840f to 1034f, 833f to 1051f, 822f to 1053f, 822f to 1066f, 906f to 1066f)
+                listOf(1819f to 2103f, 1796f to 2099f, 1794f to 2073f, 1783f to 2068f, 1782f to 2045f, 1697f to 2046f, 1695f to 2056f, 1680f to 2067f, 1677f to 2089f, 1670f to 2092f, 1670f to 2098f, 1662f to 2104f, 1644f to 2104f, 1644f to 2139f, 1716f to 2135f, 1797f to 2140f, 1818f to 2136f)
             )
         ),
         Building(
-            3, "Taal Building", Category.MIXED_USE, 815f, 830f, 72f, 145f, floorCount = 3, roomsPerRow = 3,
+            3, "Taal Building", Category.MIXED_USE, 1630f, 1661f, 148f, 293f, floorCount = 4, roomsPerRow = 3,
             shapes = listOf(
-                listOf(875f to 830f, 817f to 837f, 815f to 840f, 820f to 861f, 822f to 904f, 831f to 906f, 832f to 911f, 839f to 916f, 839f to 946f, 849f to 950f, 847f to 959f, 832f to 963f, 833f to 973f, 836f to 975f, 879f to 970f, 879f to 954f, 887f to 951f, 884f to 848f, 878f to 841f)
+                listOf(1754f to 1661f, 1648f to 1672f, 1630f to 1678f, 1631f to 1703f, 1638f to 1715f, 1644f to 1812f, 1662f to 1817f, 1664f to 1827f, 1677f to 1836f, 1677f to 1892f, 1682f to 1900f, 1697f to 1904f, 1693f to 1919f, 1672f to 1920f, 1664f to 1926f, 1666f to 1949f, 1671f to 1954f, 1761f to 1944f, 1762f to 1913f, 1778f to 1906f, 1771f to 1692f, 1760f to 1683f)
             )
         ),
         Building(
-            4, "Rosario Canteen", Category.AUXILIARY, 658f, 870f, 67f, 71f, floorCount = 1, roomsPerRow = 2,
+            4, "Rosario Cafeteria", Category.AUXILIARY, 1313f, 1738f, 141f, 149f, floorCount = 2, roomsPerRow = 2,
             shapes = listOf(
-                listOf(722f to 870f, 701f to 871f, 687f to 876f, 678f to 893f, 658f to 894f, 659f to 926f, 682f to 923f, 688f to 941f, 715f to 936f, 714f to 919f, 722f to 910f, 722f to 886f, 725f to 884f)
+                listOf(1446f to 1738f, 1401f to 1742f, 1394f to 1748f, 1371f to 1752f, 1355f to 1785f, 1313f to 1788f, 1317f to 1857f, 1368f to 1850f, 1375f to 1887f, 1435f to 1876f, 1432f to 1841f, 1447f to 1827f, 1448f to 1775f, 1454f to 1772f)
             )
         ),
         Building(
-            5, "Apacible Museum", Category.ADMINISTRATION, 542f, 891f, 93f, 64f, floorCount = 2, roomsPerRow = 2,
+            5, "Apacible Museum", Category.ADMINISTRATION, 1083f, 1786f, 190f, 127f, floorCount = 2, roomsPerRow = 2,
             shapes = listOf(
-                listOf(548f to 891f, 547f to 916f, 542f to 929f, 544f to 949f, 571f to 950f, 574f to 954f, 586f to 955f, 595f to 951f, 628f to 951f, 635f to 921f, 633f to 910f, 611f to 909f, 607f to 914f, 592f to 914f, 562f to 909f, 560f to 892f)
+                listOf(1093f to 1786f, 1093f to 1834f, 1083f to 1879f, 1088f to 1902f, 1136f to 1902f, 1147f to 1911f, 1186f to 1913f, 1192f to 1907f, 1256f to 1909f, 1260f to 1905f, 1268f to 1853f, 1273f to 1845f, 1271f to 1821f, 1222f to 1819f, 1213f to 1828f, 1197f to 1830f, 1169f to 1821f, 1128f to 1819f, 1122f to 1813f, 1124f to 1786f)
             )
         ),
         Building(
-            6, "Sto. Tomas Building", Category.ACADEMIC, 444f, 729f, 99f, 333f, floorCount = 3, roomsPerRow = 3, status = BuildingStatus.UNDER_CONSTRUCTION,
+            6, "Sto. Tomas Building", Category.ACADEMIC, 883f, 1453f, 209f, 679f, floorCount = 3, roomsPerRow = 3, status = BuildingStatus.UNDER_CONSTRUCTION,
             shapes = listOf(
-                listOf(531f to 729f, 525f to 733f, 509f to 731f, 507f to 741f, 501f to 747f, 471f to 903f, 473f to 919f, 465f to 959f, 459f to 967f, 461f to 980f, 455f to 987f, 444f to 1050f, 448f to 1052f, 459f to 1051f, 507f to 1062f, 511f to 1058f, 526f to 1060f, 530f to 1042f, 536f to 1039f, 536f to 1031f, 531f to 1026f, 489f to 1016f, 503f to 950f, 523f to 949f, 536f to 884f, 535f to 880f, 526f to 878f, 518f to 869f, 543f to 738f, 542f to 732f)
+                listOf(1074f to 1453f, 1053f to 1456f, 1046f to 1463f, 1034f to 1461f, 1033f to 1455f, 1011f to 1459f, 1013f to 1481f, 995f to 1490f, 997f to 1499f, 993f to 1506f, 998f to 1506f, 999f to 1511f, 991f to 1513f, 997f to 1522f, 993f to 1523f, 994f to 1532f, 986f to 1537f, 991f to 1552f, 982f to 1556f, 987f to 1569f, 983f to 1574f, 985f to 1583f, 976f to 1587f, 973f to 1607f, 978f to 1608f, 979f to 1615f, 971f to 1618f, 974f to 1627f, 969f to 1628f, 969f to 1632f, 975f to 1633f, 969f to 1656f, 963f to 1656f, 960f to 1676f, 964f to 1677f, 964f to 1686f, 957f to 1687f, 961f to 1697f, 955f to 1698f, 960f to 1710f, 950f to 1713f, 950f to 1717f, 959f to 1719f, 959f to 1730f, 954f to 1737f, 954f to 1749f, 944f to 1755f, 944f to 1759f, 950f to 1760f, 949f to 1772f, 945f to 1773f, 947f to 1782f, 939f to 1785f, 943f to 1803f, 938f to 1818f, 945f to 1837f, 941f to 1839f, 940f to 1858f, 932f to 1859f, 937f to 1876f, 932f to 1891f, 926f to 1892f, 931f to 1904f, 929f to 1918f, 917f to 1921f, 912f to 1943f, 920f to 1945f, 920f to 1962f, 908f to 1972f, 907f to 1991f, 899f to 1992f, 905f to 1998f, 903f to 2012f, 899f to 2013f, 901f to 2023f, 893f to 2024f, 897f to 2029f, 894f to 2057f, 886f to 2058f, 889f to 2067f, 884f to 2068f, 889f to 2085f, 885f to 2087f, 883f to 2103f, 893f to 2111f, 913f to 2109f, 1009f to 2132f, 1020f to 2128f, 1021f to 2123f, 1027f to 2124f, 1028f to 2129f, 1042f to 2124f, 1052f to 2127f, 1061f to 2117f, 1061f to 2097f, 1069f to 2095f, 1069f to 2088f, 1082f to 2082f, 1078f to 2076f, 1080f to 2057f, 1069f to 2053f, 1068f to 2046f, 1052f to 2048f, 1043f to 2046f, 1040f to 2040f, 1022f to 2042f, 1016f to 2035f, 1003f to 2036f, 1002f to 2032f, 993f to 2034f, 992f to 2030f, 984f to 2029f, 989f to 2021f, 987f to 2012f, 991f to 2011f, 989f to 2002f, 993f to 2001f, 991f to 1992f, 999f to 1990f, 997f to 1971f, 1003f to 1968f, 998f to 1963f, 1000f to 1942f, 1009f to 1938f, 1009f to 1934f, 1003f to 1933f, 1007f to 1927f, 1007f to 1907f, 1012f to 1900f, 1049f to 1904f, 1051f to 1890f, 1055f to 1889f, 1053f to 1880f, 1061f to 1839f, 1069f to 1836f, 1064f to 1831f, 1064f to 1820f, 1069f to 1815f, 1073f to 1776f, 1081f to 1773f, 1069f to 1752f, 1052f to 1753f, 1042f to 1742f, 1044f to 1716f, 1051f to 1715f, 1046f to 1710f, 1047f to 1696f, 1055f to 1694f, 1051f to 1676f, 1059f to 1673f, 1059f to 1669f, 1053f to 1668f, 1054f to 1658f, 1063f to 1654f, 1058f to 1637f, 1067f to 1631f, 1062f to 1626f, 1068f to 1590f, 1075f to 1589f, 1069f to 1580f, 1079f to 1526f, 1087f to 1523f, 1081f to 1514f, 1092f to 1469f, 1085f to 1464f, 1084f to 1455f, 1075f to 1460f)
             )
         ),
         Building(
-            7, "Joson Gymnasium", Category.ACADEMIC, 567f, 722f, 95f, 181f, floorCount = 2, roomsPerRow = 2,
+            7, "Joson Gymnasium", Category.ACADEMIC, 1133f, 1445f, 195f, 365f, floorCount = 2, roomsPerRow = 2,
             shapes = listOf(
-                listOf(583f to 722f, 579f to 728f, 567f to 859f, 568f to 868f, 579f to 869f, 576f to 874f, 575f to 897f, 634f to 903f, 636f to 874f, 649f to 874f, 662f to 728f)
+                listOf(1160f to 1445f, 1133f to 1739f, 1172f to 1742f, 1173f to 1747f, 1151f to 1749f, 1150f to 1799f, 1270f to 1810f, 1275f to 1803f, 1277f to 1759f, 1271f to 1751f, 1302f to 1751f, 1328f to 1457f, 1315f to 1453f)
             )
         ),
         Building(
-            8, "Infirmary", Category.ALLIED, 716f, 738f, 49f, 114f, floorCount = 2, roomsPerRow = 2,
+            8, "Infirmary", Category.ALLIED, 1431f, 1475f, 103f, 233f, floorCount = 1, roomsPerRow = 2,
             shapes = listOf(
-                listOf(725f to 738f, 719f to 741f, 716f to 851f, 746f to 852f, 749f to 850f, 750f to 823f, 747f to 810f, 751f to 804f, 753f to 768f, 765f to 764f, 765f to 740f)
+                listOf(1448f to 1475f, 1437f to 1482f, 1431f to 1708f, 1498f to 1708f, 1500f to 1661f, 1504f to 1657f, 1498f to 1621f, 1505f to 1612f, 1505f to 1565f, 1510f to 1560f, 1510f to 1539f, 1534f to 1532f, 1532f to 1478f)
             )
         ),
         Building(
-            9, "Ermita Building", Category.ADMINISTRATION, 843f, 717f, 39f, 41f, floorCount = 2, roomsPerRow = 2,
+            9, "Ermita Building (combined with Hatchery & Research Building)", Category.ADMINISTRATION, 1686f, 1432f, 134f, 174f, floorCount = 2, roomsPerRow = 2,
             shapes = listOf(
-                listOf(881f to 717f, 843f to 722f, 845f to 758f, 882f to 755f)
+                listOf(1816f to 1432f, 1767f to 1432f, 1766f to 1437f, 1727f to 1435f, 1726f to 1441f, 1699f to 1439f, 1692f to 1441f, 1686f to 1452f, 1691f to 1468f, 1692f to 1517f, 1753f to 1517f, 1754f to 1511f, 1764f to 1511f, 1765f to 1606f, 1815f to 1606f, 1820f to 1601f, 1820f to 1457f)
             )
         ),
         Building(
-            10, "Villadolid Ground Powerhouse", Category.OTHERS, 824f, 542f, 43f, 41f, floorCount = 1, roomsPerRow = 0,
+            10, "Villadolid Ground Powerhouse", Category.OTHERS, 1648f, 1082f, 94f, 90f, floorCount = 1, roomsPerRow = 0,
             shapes = listOf(
-                listOf(866f to 542f, 824f to 546f, 824f to 581f, 827f to 583f, 846f to 577f, 867f to 577f)
+                listOf(1648f to 1082f, 1742f to 1082f, 1742f to 1172f, 1648f to 1172f)
             )
         ),
         Building(
-            11, "Lobo Building", Category.ACADEMIC, 845f, 432f, 60f, 97f, floorCount = 3, roomsPerRow = 3,
+            11, "IMT Building / Lobo Building (combined with the Library)", Category.ACADEMIC, 1690f, 863f, 124f, 198f, floorCount = 2, roomsPerRow = 3,
             shapes = listOf(
-                listOf(898f to 432f, 845f to 438f, 852f to 529f, 905f to 523f)
+                listOf(1800f to 863f, 1690f to 875f, 1702f to 1061f, 1814f to 1049f)
             )
         ),
         Building(
-            12, "Talisay Mini Forest", Category.OTHERS, 585f, 553f, 177f, 144f, floorCount = 1, roomsPerRow = 0,
+            12, "Talisay Mini Forest", Category.OTHERS, 1180f, 1110f, 350f, 270f, floorCount = 1, roomsPerRow = 0,
             shapes = listOf(
-                listOf(585f to 553f, 762f to 553f, 762f to 697f, 585f to 697f)
+                listOf(1180f to 1110f, 1530f to 1110f, 1530f to 1380f, 1180f to 1380f)
             )
         ),
         Building(
-            13, "Lipa Building", Category.ACADEMIC, 523f, 397f, 113f, 286f, floorCount = 3, roomsPerRow = 3,
+            13, "Lipa Building", Category.ACADEMIC, 1044f, 793f, 233f, 579f, floorCount = 3, roomsPerRow = 3,
             shapes = listOf(
-                listOf(631f to 404f, 535f to 397f, 535f to 424f, 544f to 428f, 543f to 443f, 533f to 447f, 536f to 487f, 531f to 508f, 530f to 535f, 535f to 543f, 535f to 553f, 526f to 579f, 529f to 596f, 525f to 606f, 527f to 616f, 523f to 640f, 523f to 658f, 532f to 662f, 532f to 679f, 526f to 683f, 560f to 683f, 562f to 679f, 567f to 582f, 573f to 560f, 570f to 517f, 574f to 448f, 581f to 444f, 635f to 446f, 636f to 431f, 632f to 427f)
+                listOf(1259f to 804f, 1068f to 793f, 1068f to 850f, 1082f to 853f, 1086f to 865f, 1084f to 886f, 1065f to 892f, 1064f to 937f, 1070f to 949f, 1071f to 969f, 1058f to 1037f, 1059f to 1074f, 1069f to 1099f, 1052f to 1149f, 1055f to 1192f, 1050f to 1198f, 1051f to 1233f, 1044f to 1282f, 1045f to 1321f, 1059f to 1324f, 1063f to 1331f, 1063f to 1358f, 1051f to 1365f, 1053f to 1372f, 1123f to 1370f, 1128f to 1363f, 1137f to 1167f, 1149f to 1123f, 1144f to 1037f, 1151f to 898f, 1156f to 892f, 1274f to 895f, 1277f to 865f, 1268f to 856f, 1268f to 809f)
             )
         ),
         Building(
-            14, "Student Council Building", Category.GENERAL, 531f, 322f, 33f, 64f, floorCount = 2, roomsPerRow = 2,
+            14, "Student Council Building", Category.GENERAL, 1062f, 644f, 62f, 134f, floorCount = 2, roomsPerRow = 2,
             shapes = listOf(
-                listOf(531f to 322f, 552f to 322f, 564f to 386f, 540f to 386f)
+                listOf(1062f to 652f, 1100f to 644f, 1124f to 768f, 1086f to 778f)
             )
         ),
         Building(
-            15, "Calatagan Building", Category.ACADEMIC, 552f, 269f, 137f, 74f, floorCount = 3, roomsPerRow = 3,
+            15, "Calatagan Building", Category.ACADEMIC, 1101f, 536f, 283f, 153f, floorCount = 3, roomsPerRow = 3,
             shapes = listOf(
-                listOf(552f to 269f, 552f to 300f, 611f to 305f, 614f to 314f, 621f to 307f, 656f to 309f, 660f to 312f, 661f to 342f, 687f to 343f, 689f to 283f, 676f to 282f, 671f to 275f, 625f to 272f, 623f to 278f, 613f to 279f, 607f to 276f, 582f to 275f, 577f to 269f)
+                listOf(1103f to 536f, 1101f to 602f, 1218f to 612f, 1227f to 630f, 1237f to 630f, 1240f to 620f, 1256f to 616f, 1313f to 621f, 1320f to 626f, 1321f to 687f, 1377f to 689f, 1384f to 590f, 1382f to 564f, 1353f to 562f, 1350f to 551f, 1297f to 544f, 1250f to 543f, 1247f to 553f, 1169f to 549f, 1159f to 544f, 1158f to 536f)
             )
         ),
         Building(
-            16, "Lemery Building", Category.ACADEMIC, 542f, 37f, 161f, 230f, floorCount = 3, roomsPerRow = 3,
+            16, "Lemery Building", Category.ACADEMIC, 1111f, 68f, 299f, 470f, floorCount = 2, roomsPerRow = 3,
             shapes = listOf(
-                listOf(558f to 140f, 556f to 166f, 560f to 170f, 634f to 169f, 634f to 143f),
-                listOf(703f to 37f, 677f to 37f, 675f to 79f, 673f to 84f, 667f to 85f, 667f to 90f, 674f to 95f, 671f to 194f, 661f to 197f, 654f to 190f, 646f to 195f, 576f to 191f, 573f to 226f, 560f to 231f, 559f to 259f, 599f to 262f, 603f to 267f, 609f to 267f, 609f to 262f, 598f to 259f, 600f to 248f, 617f to 248f, 624f to 255f, 686f to 257f, 687f to 227f, 694f to 223f),
-                listOf(703f to 37f, 677f to 37f, 675f to 79f, 673f to 84f, 667f to 85f, 667f to 90f, 674f to 95f, 671f to 194f, 661f to 197f, 657f to 191f, 650f to 190f, 646f to 195f, 582f to 191f, 570f to 195f, 565f to 188f, 554f to 183f, 542f to 195f, 544f to 209f, 555f to 218f, 562f to 217f, 568f to 209f, 573f to 210f, 573f to 226f, 560f to 231f, 559f to 259f, 599f to 262f, 603f to 267f, 609f to 267f, 609f to 262f, 598f to 259f, 600f to 248f, 617f to 248f, 624f to 255f, 686f to 257f, 687f to 227f, 694f to 223f)
+                listOf(1115f to 280f, 1111f to 296f, 1112f to 336f, 1119f to 342f, 1163f to 339f, 1182f to 346f, 1204f to 340f, 1271f to 342f, 1271f to 284f, 1186f to 278f),
+                listOf(1410f to 73f, 1362f to 68f, 1354f to 71f, 1349f to 161f, 1333f to 168f, 1333f to 182f, 1347f to 189f, 1344f to 249f, 1348f to 276f, 1339f to 391f, 1325f to 392f, 1318f to 387f, 1317f to 380f, 1297f to 379f, 1290f to 388f, 1150f to 381f, 1144f to 451f, 1141f to 456f, 1122f to 456f, 1119f to 461f, 1117f to 520f, 1195f to 526f, 1203f to 530f, 1205f to 537f, 1219f to 538f, 1222f to 522f, 1202f to 520f, 1199f to 515f, 1203f to 499f, 1235f to 499f, 1247f to 512f, 1375f to 516f, 1378f to 456f, 1391f to 449f)
             )
         ),
         Building(
-            17, "Maintenance Building", Category.GENERAL, 565f, 45f, 35f, 37f, floorCount = 1, roomsPerRow = 2,
+            17, "Maintenance Building", Category.GENERAL, 1128f, 92f, 78f, 72f, floorCount = 1, roomsPerRow = 2,
             shapes = listOf(
-                listOf(565f to 45f, 600f to 45f, 600f to 82f, 565f to 82f)
+                listOf(1128f to 92f, 1206f to 92f, 1206f to 164f, 1128f to 164f)
             )
         ),
         Building(
-            18, "Open Court", Category.OTHERS, 403f, 352f, 59f, 87f, floorCount = 1, roomsPerRow = 0,
+            18, "Open Court", Category.OTHERS, 808f, 706f, 112f, 174f, floorCount = 1, roomsPerRow = 0,
             shapes = listOf(
-                listOf(403f to 352f, 462f to 352f, 462f to 439f, 403f to 439f)
+                listOf(808f to 706f, 920f to 706f, 920f to 880f, 808f to 880f)
             )
         ),
         Building(
-            19, "Lian Cafeteria", Category.AUXILIARY, 320f, 576f, 113f, 60f, floorCount = 2, roomsPerRow = 2,
+            19, "Lian Cafeteria", Category.AUXILIARY, 639f, 1151f, 232f, 126f, floorCount = 2, roomsPerRow = 2,
             shapes = listOf(
-                listOf(320f to 598f, 323f to 618f, 347f to 629f, 352f to 629f, 356f to 624f, 380f to 626f, 385f to 635f, 401f to 636f, 407f to 629f, 425f to 630f, 427f to 621f, 433f to 619f, 433f to 612f, 429f to 610f, 431f to 589f, 404f to 585f, 401f to 581f, 390f to 584f, 329f to 576f, 325f to 596f)
+                listOf(639f to 1193f, 644f to 1241f, 655f to 1242f, 662f to 1252f, 681f to 1254f, 691f to 1261f, 709f to 1262f, 718f to 1251f, 754f to 1255f, 767f to 1273f, 806f to 1277f, 814f to 1270f, 816f to 1261f, 825f to 1266f, 855f to 1265f, 860f to 1244f, 869f to 1243f, 871f to 1223f, 861f to 1216f, 865f to 1176f, 811f to 1169f, 804f to 1161f, 770f to 1165f, 654f to 1151f, 648f to 1192f)
             )
         ),
         Building(
-            20, "Nasugbu Hostel", Category.MIXED_USE, 197f, 664f, 130f, 132f, floorCount = 3, roomsPerRow = 3,
+            20, "Nasugbu Hostel", Category.MIXED_USE, 391f, 1328f, 265f, 266f, floorCount = 3, roomsPerRow = 3,
             shapes = listOf(
-                listOf(225f to 664f, 207f to 750f, 200f to 757f, 197f to 771f, 309f to 796f, 313f to 782f, 310f to 771f, 327f to 688f)
+                listOf(447f to 1328f, 412f to 1498f, 399f to 1514f, 391f to 1544f, 414f to 1554f, 594f to 1594f, 623f to 1594f, 628f to 1571f, 624f to 1540f, 656f to 1394f, 656f to 1375f, 641f to 1368f, 468f to 1329f)
             )
         ),
         Building(
-            21, "San Juan Building", Category.ACADEMIC, 312f, 686f, 102f, 339f, floorCount = 3, roomsPerRow = 3,
+            21, "San Juan Building", Category.ACADEMIC, 619f, 1371f, 213f, 684f, floorCount = 3, roomsPerRow = 3,
             shapes = listOf(
-                listOf(388f to 686f, 384f to 686f, 358f to 809f, 342f to 821f, 332f to 871f, 337f to 874f, 331f to 904f, 334f to 917f, 312f to 1012f, 313f to 1025f, 318f to 1019f, 344f to 1022f, 414f to 701f, 392f to 695f)
+                listOf(777f to 1371f, 767f to 1371f, 762f to 1377f, 756f to 1422f, 735f to 1503f, 710f to 1635f, 702f to 1641f, 682f to 1641f, 670f to 1687f, 661f to 1745f, 671f to 1750f, 672f to 1759f, 660f to 1808f, 666f to 1834f, 647f to 1904f, 648f to 1915f, 619f to 2051f, 633f to 2055f, 635f to 2047f, 643f to 2043f, 690f to 2050f, 800f to 1563f, 832f to 1402f, 787f to 1389f, 784f to 1375f)
             )
         ),
         Building(
-            22, "Batangan Student Services Center", Category.MIXED_USE, 44f, 757f, 133f, 252f, floorCount = 3, roomsPerRow = 3, status = BuildingStatus.UNBUILT,
+            22, "Batangan Student Services Center", Category.MIXED_USE, 84f, 1509f, 278f, 518f, floorCount = 3, roomsPerRow = 3, status = BuildingStatus.UNBUILT,
             shapes = listOf(
-                listOf(108f to 757f, 104f to 759f, 44f to 971f, 54f to 974f, 62f to 982f, 63f to 990f, 71f to 992f, 73f to 997f, 113f to 1009f, 117f to 1007f, 127f to 971f, 135f to 969f, 138f to 957f, 147f to 953f, 152f to 935f, 149f to 921f, 163f to 870f, 171f to 857f, 177f to 830f, 174f to 787f, 151f to 776f, 146f to 768f)
+                listOf(216f to 1509f, 215f to 1513f, 202f to 1513f, 205f to 1526f, 198f to 1527f, 194f to 1541f, 197f to 1558f, 193f to 1570f, 186f to 1571f, 181f to 1605f, 176f to 1606f, 180f to 1616f, 172f to 1620f, 173f to 1629f, 168f to 1630f, 173f to 1641f, 158f to 1665f, 161f to 1683f, 156f to 1691f, 150f to 1691f, 156f to 1700f, 148f to 1702f, 144f to 1716f, 148f to 1726f, 140f to 1730f, 144f to 1740f, 130f to 1761f, 135f to 1772f, 132f to 1782f, 124f to 1784f, 127f to 1799f, 117f to 1804f, 108f to 1836f, 112f to 1850f, 103f to 1852f, 97f to 1872f, 102f to 1884f, 94f to 1888f, 98f to 1898f, 91f to 1921f, 84f to 1922f, 84f to 1926f, 88f to 1927f, 85f to 1950f, 108f to 1955f, 121f to 1970f, 121f to 1985f, 135f to 1985f, 137f to 2001f, 153f to 1998f, 165f to 2002f, 169f to 2011f, 174f to 2006f, 183f to 2007f, 184f to 2015f, 226f to 2027f, 229f to 2021f, 235f to 2021f, 242f to 1987f, 250f to 1985f, 245f to 1975f, 248f to 1969f, 255f to 1969f, 251f to 1964f, 253f to 1947f, 273f to 1941f, 278f to 1936f, 273f to 1927f, 291f to 1921f, 292f to 1913f, 301f to 1912f, 299f to 1891f, 306f to 1890f, 303f to 1877f, 311f to 1876f, 302f to 1863f, 307f to 1847f, 302f to 1837f, 304f to 1832f, 311f to 1832f, 318f to 1798f, 314f to 1792f, 323f to 1789f, 318f to 1778f, 327f to 1775f, 322f to 1770f, 322f to 1765f, 328f to 1764f, 326f to 1746f, 335f to 1745f, 330f to 1734f, 347f to 1726f, 349f to 1715f, 344f to 1714f, 344f to 1708f, 353f to 1704f, 355f to 1692f, 350f to 1691f, 350f to 1686f, 361f to 1675f, 362f to 1660f, 356f to 1651f, 359f to 1621f, 351f to 1611f, 357f to 1587f, 353f to 1567f, 305f to 1549f, 293f to 1528f, 276f to 1526f, 275f to 1531f, 266f to 1530f, 263f to 1521f, 243f to 1516f, 232f to 1519f, 231f to 1513f)
             )
         ),
         Building(
-            23, "Roxas Ground Facade", Category.GENERAL, 48f, 1037f, 85f, 29f, floorCount = 1, roomsPerRow = 0,
+            23, "Roxas Ground Facade", Category.GENERAL, 96f, 2082f, 166f, 50f, floorCount = 1, roomsPerRow = 0,
             shapes = listOf(
-                listOf(48f to 1037f, 133f to 1037f, 133f to 1066f, 48f to 1066f)
+                listOf(96f to 2082f, 262f to 2082f, 262f to 2132f, 96f to 2132f)
             )
         ),
         Building(
-            24, "RGO Commercial Rental Stall", Category.OTHERS, 130f, 998f, 110f, 70f, floorCount = 1, roomsPerRow = 0,
+            24, "RGO Commercial Rental Stall", Category.OTHERS, 262f, 2038f, 94f, 92f, floorCount = 1, roomsPerRow = 0,
             shapes = listOf(
-                listOf(130f to 998f, 240f to 998f, 240f to 1068f, 130f to 1068f)
+                listOf(262f to 2038f, 356f to 2038f, 356f to 2130f, 262f to 2130f)
             )
         ),
         Building(
-            25, "Entrance-Exit (Guardhouse)", Category.GENERAL, 240f, 1022f, 56f, 40f, floorCount = 1, roomsPerRow = 0,
+            25, "Entrance-Exit (Guardhouse)", Category.GENERAL, 356f, 2000f, 234f, 132f, floorCount = 1, roomsPerRow = 0,
             shapes = listOf(
-                listOf(240f to 1022f, 296f to 1022f, 296f to 1062f, 240f to 1062f)
+                listOf(356f to 2000f, 540f to 2000f, 590f to 2040f, 590f to 2126f, 480f to 2132f, 356f to 2132f)
+            )
+        ),
+        Building(
+            26, "Electrical box 1", Category.FACILITY, 1387f, 797f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Electrical box / electrical asset.",
+            shapes = listOf(
+                listOf(1447f to 827f, 1442f to 842f, 1432f to 852f, 1417f to 857f, 1402f to 852f, 1391f to 842f, 1387f to 827f, 1391f to 812f, 1402f to 801f, 1417f to 797f, 1432f to 801f, 1442f to 812f)
+            )
+        ),
+        Building(
+            27, "Electrical box 2", Category.FACILITY, 1387f, 1007f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Electrical box / electrical asset.",
+            shapes = listOf(
+                listOf(1447f to 1037f, 1442f to 1052f, 1432f to 1062f, 1417f to 1067f, 1402f to 1062f, 1391f to 1052f, 1387f to 1037f, 1391f to 1022f, 1402f to 1011f, 1417f to 1007f, 1432f to 1011f, 1442f to 1022f)
+            )
+        ),
+        Building(
+            28, "Electrical box 3", Category.FACILITY, 1477f, 1327f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Electrical box / electrical asset.",
+            shapes = listOf(
+                listOf(1537f to 1357f, 1532f to 1372f, 1522f to 1382f, 1507f to 1387f, 1492f to 1382f, 1481f to 1372f, 1477f to 1357f, 1481f to 1342f, 1492f to 1331f, 1507f to 1327f, 1522f to 1331f, 1532f to 1342f)
+            )
+        ),
+        Building(
+            29, "Electrical box 4", Category.FACILITY, 702f, 2066f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Electrical box / electrical asset.",
+            shapes = listOf(
+                listOf(762f to 2096f, 757f to 2111f, 747f to 2121f, 732f to 2126f, 717f to 2121f, 706f to 2111f, 702f to 2096f, 706f to 2081f, 717f to 2070f, 732f to 2066f, 747f to 2070f, 757f to 2081f)
+            )
+        ),
+        Building(
+            30, "Segregation Station 1", Category.FACILITY, 647f, 914f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Waste segregation station.",
+            shapes = listOf(
+                listOf(707f to 944f, 702f to 959f, 692f to 969f, 677f to 974f, 662f to 969f, 651f to 959f, 647f to 944f, 651f to 929f, 662f to 918f, 677f to 914f, 692f to 918f, 702f to 929f)
+            )
+        ),
+        Building(
+            31, "Segregation Station 2", Category.FACILITY, 889f, 1017f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Waste segregation station.",
+            shapes = listOf(
+                listOf(949f to 1047f, 944f to 1062f, 934f to 1072f, 919f to 1077f, 904f to 1072f, 893f to 1062f, 889f to 1047f, 893f to 1032f, 904f to 1021f, 919f to 1017f, 934f to 1021f, 944f to 1032f)
+            )
+        ),
+        Building(
+            32, "Guard house 1", Category.FACILITY, 858f, 1367f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Guard house.",
+            shapes = listOf(
+                listOf(918f to 1397f, 913f to 1412f, 903f to 1422f, 888f to 1427f, 873f to 1422f, 862f to 1412f, 858f to 1397f, 862f to 1382f, 873f to 1371f, 888f to 1367f, 903f to 1371f, 913f to 1382f)
+            )
+        ),
+        Building(
+            33, "Guard house 2", Category.FACILITY, 988f, 1325f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Guard house.",
+            shapes = listOf(
+                listOf(1048f to 1355f, 1043f to 1370f, 1033f to 1380f, 1018f to 1385f, 1003f to 1380f, 992f to 1370f, 988f to 1355f, 992f to 1340f, 1003f to 1329f, 1018f to 1325f, 1033f to 1329f, 1043f to 1340f)
+            )
+        ),
+        Building(
+            34, "Guard house 3", Category.FACILITY, 290f, 2060f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Guard house.",
+            shapes = listOf(
+                listOf(350f to 2090f, 345f to 2105f, 335f to 2115f, 320f to 2120f, 305f to 2115f, 294f to 2105f, 290f to 2090f, 294f to 2075f, 305f to 2064f, 320f to 2060f, 335f to 2064f, 345f to 2075f)
+            )
+        ),
+        Building(
+            35, "Guard house 4", Category.FACILITY, 327f, 2081f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Guard house.",
+            shapes = listOf(
+                listOf(387f to 2111f, 382f to 2126f, 372f to 2136f, 357f to 2141f, 342f to 2136f, 331f to 2126f, 327f to 2111f, 331f to 2096f, 342f to 2085f, 357f to 2081f, 372f to 2085f, 382f to 2096f)
+            )
+        ),
+        Building(
+            36, "Guard house 5", Category.FACILITY, 493f, 2056f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Guard house.",
+            shapes = listOf(
+                listOf(553f to 2086f, 548f to 2101f, 538f to 2111f, 523f to 2116f, 508f to 2111f, 497f to 2101f, 493f to 2086f, 497f to 2071f, 508f to 2060f, 523f to 2056f, 538f to 2060f, 548f to 2071f)
+            )
+        ),
+        Building(
+            37, "Guard house 6", Category.FACILITY, 1223f, 2106f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Guard house.",
+            shapes = listOf(
+                listOf(1283f to 2136f, 1278f to 2151f, 1268f to 2161f, 1253f to 2166f, 1238f to 2161f, 1227f to 2151f, 1223f to 2136f, 1227f to 2121f, 1238f to 2110f, 1253f to 2106f, 1268f to 2110f, 1278f to 2121f)
+            )
+        ),
+        Building(
+            38, "Guard house 7", Category.FACILITY, 1539f, 2131f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Guard house.",
+            shapes = listOf(
+                listOf(1599f to 2161f, 1594f to 2176f, 1584f to 2186f, 1569f to 2191f, 1554f to 2186f, 1543f to 2176f, 1539f to 2161f, 1543f to 2146f, 1554f to 2135f, 1569f to 2131f, 1584f to 2135f, 1594f to 2146f)
             )
         )
     )
@@ -169,7 +256,7 @@ object CampusData {
     private val cache = mutableMapOf<Pair<Int, Floor>, FloorData>()
 
     fun floorData(b: Building, floor: Floor): FloorData =
-        cache.getOrPut(b.id to floor) { generate(b, floor) }
+        cache.getOrPut(b.id to floor) { Building15Plan.forFloor(b.id, floor) ?: Building2Plan.forFloor(b.id, floor) ?: Building8Plan.forFloor(b.id, floor) ?: Building21Plan.forFloor(b.id, floor) ?: Building10Plan.forFloor(b.id, floor) ?: Building11Plan.forFloor(b.id, floor) ?: Building16Plan.forFloor(b.id, floor) ?: Building4Plan.forFloor(b.id, floor) ?: Building1Plan.forFloor(b.id, floor) ?: Building3Plan.forFloor(b.id, floor) ?: generate(b, floor) }
 
     /**
      * Generates a rough layout: 2 rows of rooms with a corridor between them.
@@ -223,6 +310,11 @@ object CampusData {
         } else {
             assets += Asset("$prefix-FX", b.id, floor, AssetType.EXTINGUISHER, 0.5f, 0.5f, "Fire extinguisher · ${b.name} ${floor.label}")
         }
-        return FloorData(rooms, assets)
+        return FloorData(
+            rooms, assets,
+            zones = listOf(Zone("Corridor", ZoneKind.CORRIDOR, 0.05f, 0.42f, 0.9f, 0.16f)),
+            aspect = 1.2f,
+            note = "Placeholder layout. The real floor plan has not been added yet."
+        )
     }
 }

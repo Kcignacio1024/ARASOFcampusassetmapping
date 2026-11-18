@@ -1,6 +1,7 @@
 package ph.edu.batstateu.arasof.arasofcampusassetmapping.viewmodel
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -24,6 +25,19 @@ class CampusViewModel : ViewModel() {
     var selectedFloor by mutableStateOf(Floor.GROUND); private set
 
     val incidents = mutableStateListOf<Incident>()
+
+    // ---- settings (saved on the phone, see MainActivity) ----
+    /** true = show the asset icons (logos) on the floor plans, false = no icons */
+    var showAssetIcons by mutableStateOf(true); private set
+    /** size of the room names on the floor plans, in sp */
+    var roomTextSp by mutableFloatStateOf(15f); private set
+    private var saveSettings: ((Boolean, Float) -> Unit)? = null
+
+    fun loadSettings(showIcons: Boolean, roomSp: Float, onSave: (Boolean, Float) -> Unit) {
+        showAssetIcons = showIcons; roomTextSp = roomSp; saveSettings = onSave
+    }
+    fun updateShowAssetIcons(value: Boolean) { showAssetIcons = value; saveSettings?.invoke(value, roomTextSp) }
+    fun updateRoomTextSp(value: Float) { roomTextSp = value; saveSettings?.invoke(showAssetIcons, value) }
     private var nextId = 1
 
     val isMaintenance get() = role == Role.MAINTENANCE

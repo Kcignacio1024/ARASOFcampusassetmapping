@@ -20,6 +20,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+        vm.loadSettings(
+            showIcons = prefs.getBoolean("show_asset_icons", true),
+            roomSp = prefs.getFloat("room_text_sp", 15f)
+        ) { showIcons, roomSp ->
+            prefs.edit().putBoolean("show_asset_icons", showIcons).putFloat("room_text_sp", roomSp).apply()
+        }
         setContent {
             // Swap MaterialTheme for the generated theme in ui/theme if you prefer it
             MaterialTheme {

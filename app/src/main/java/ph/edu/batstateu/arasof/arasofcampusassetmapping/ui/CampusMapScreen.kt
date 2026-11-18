@@ -4,6 +4,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -31,6 +33,7 @@ import ph.edu.batstateu.arasof.arasofcampusassetmapping.R
 import ph.edu.batstateu.arasof.arasofcampusassetmapping.data.CampusData
 import ph.edu.batstateu.arasof.arasofcampusassetmapping.model.Building
 import ph.edu.batstateu.arasof.arasofcampusassetmapping.model.BuildingStatus
+import ph.edu.batstateu.arasof.arasofcampusassetmapping.model.Floor
 import ph.edu.batstateu.arasof.arasofcampusassetmapping.viewmodel.CampusViewModel
 
 private const val MAX_ZOOM = 8f
@@ -45,6 +48,8 @@ private fun clampOffset(o: Offset, s: Float, size: IntSize): Offset {
 @Composable
 fun CampusMapScreen(vm: CampusViewModel) {
     var picked by remember { mutableStateOf<Building?>(null) }
+    var infoOf by remember { mutableStateOf<Building?>(null) }
+    var showSettings by remember { mutableStateOf(false) }
     var notice by remember { mutableStateOf<String?>(null) }
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
@@ -69,6 +74,8 @@ fun CampusMapScreen(vm: CampusViewModel) {
         val k = CampusData.MAP_W / boxSize.width
         val mx = content.x * k
         val my = content.y * k
+        // small legend items (electrical boxes, guard houses ...) win over the building under them
+        CampusData.buildings.firstOrNull { !it.hasPlan && it.contains(mx, my) }?.let { return it }
         CampusData.buildings.firstOrNull { it.contains(mx, my) }?.let { return it }
         // forgiving tap: nearest building within ~12 screen pixels
         val tol = 12f * k / scale
@@ -89,6 +96,7 @@ fun CampusMapScreen(vm: CampusViewModel) {
             BadgedBox(badge = { if (vm.openCount() > 0) Badge { Text("${vm.openCount()}") } }) {
                 TextButton(onClick = vm::openReports) { Text("Reports") }
             }
+            TextButton(onClick = { showSettings = true }) { Text("Settings") }
             TextButton(onClick = vm::logout) { Text("Log out") }
         }
         Text(
@@ -147,7 +155,10 @@ fun CampusMapScreen(vm: CampusViewModel) {
                                 if (b == null) {
                                     notice = null
                                 } else if (b.isTappable) {
-                                    notice = null; picked = b
+                                    notice = null
+                                    // only one floor -> no need to ask, go straight to the ground floor
+                                    if (!b.hasPlan) infoOf = b
+                                    else if (b.floorCount == 1) vm.openFloor(b, Floor.GROUND) else picked = b
                                 } else {
                                     notice = "${b.id}. ${b.name} is " +
                                             if (b.status == BuildingStatus.UNDER_CONSTRUCTION) "still under construction."
@@ -221,6 +232,32 @@ fun CampusMapScreen(vm: CampusViewModel) {
             TextButton(onClick = { reset() }) { Text("Reset") }
             Text("Gray = under construction / not yet built", fontSize = 11.sp, modifier = Modifier.weight(1f))
         }
+        // legend of the new things on the map
+        Row(
+            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(top = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text("\u26A1 Electrical box / asset", fontSize = 11.sp)
+            Text("\uD83D\uDDD1\uFE0F Segregation station", fontSize = 11.sp)
+            Text("\uD83D\uDEE1\uFE0F Guard house", fontSize = 11.sp)
+            Text("9 = Ermita Building combined with Hatchery & Research Building", fontSize = 11.sp)
+        }
+    }
+
+    if (showSettings) SettingsDialog(vm) { showSettings = false }
+
+    infoOf?.let { b ->
+        AlertDialog(
+            onDismissRequest = { infoOf = null },
+            title = { Text(b.name) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(b.category.label, style = MaterialTheme.typography.labelMedium)
+                    if (b.info.isNotBlank()) Text(b.info)
+                }
+            },
+            confirmButton = { TextButton(onClick = { infoOf = null }) { Text("OK") } }
+        )
     }
 
     picked?.let { b ->

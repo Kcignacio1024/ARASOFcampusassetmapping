@@ -3,17 +3,26 @@ package ph.edu.batstateu.arasof.arasofcampusassetmapping.model
 enum class Role { STUDENT, MAINTENANCE }
 
 enum class Floor(val label: String) {
-    GROUND("Ground floor"), SECOND("2nd floor"), THIRD("3rd floor")
+    GROUND("Ground floor"), SECOND("2nd floor"), THIRD("3rd floor"), FOURTH("4th floor")
 }
 
 /** studentVisible = false -> only maintenance (IT) can see this asset type on the map */
 enum class AssetType(val label: String, val symbol: String, val studentVisible: Boolean) {
     EXIT("Exit", "E", true),
-    FIRE_ALARM("Fire alarm", "A", true),
-    FIRE_LIGHT("Fire light", "L", true),
+    FIRE_ALARM("Fire alarm / smoke detector", "A", true),
+    FIRE_LIGHT("Emergency / fire light", "L", true),
     HYDRANT("Fire hydrant", "H", true),
     EXTINGUISHER("Fire extinguisher", "X", true),
-    COMPUTER("Computers", "PC", false)
+    AIRCON("Air conditioner", "AC", true),
+    WIFI("Wi-Fi access point", "W", true),
+    PROJECTOR("Projector", "PJ", true),
+    CCTV("CCTV camera", "CC", false),
+    COMPUTER("Computers", "PC", false),
+    SPECIAL_EQUIP("Specialized equipment", "SE", false),
+    TABLE_SET("Table with seats", "TS", true),
+    SEAT("Seat", "S", true),
+    TABLE("Table (standing dining)", "T", true),
+    FAN("Electric / ceiling fan", "F", true)
 }
 
 enum class IncidentStatus { OPEN, RESOLVED }
@@ -28,7 +37,9 @@ enum class Category(val label: String) {
     MIXED_USE("Mixed-use"),
     AUXILIARY("Auxiliary services"),
     OTHERS("Others"),
-    RESEARCH("Research office")
+    RESEARCH("Research office"),
+    FACILITY("Facility"),
+    ENTRANCE("Gate / entrance")
 }
 
 /**
@@ -45,7 +56,10 @@ data class Building(
     val floorCount: Int = 3,
     val roomsPerRow: Int = 3,
     val status: BuildingStatus = BuildingStatus.OPEN,
-    val shapes: List<List<Pair<Float, Float>>> = emptyList()
+    val shapes: List<List<Pair<Float, Float>>> = emptyList(),
+    /** false = only an information card is shown when tapped (gates, stations ...), no floor plan */
+    val hasPlan: Boolean = true,
+    val info: String = ""
 ) {
     val floors: List<Floor> get() = Floor.values().take(floorCount)
     val isTappable: Boolean get() = status == BuildingStatus.OPEN
@@ -74,6 +88,17 @@ data class Building(
     }
 }
 
+enum class ZoneKind { CORRIDOR, STAIRS, ROOFTOP, RAMP, PLAIN }
+
+/** A non-room area on a floor plan (corridor, stairs). Positions are fractions (0..1). */
+data class Zone(
+    val name: String,
+    val kind: ZoneKind,
+    val x: Float, val y: Float, val w: Float, val h: Float,
+    /** optional polygon (plan fractions) for L-shaped or other non-rectangular areas */
+    val outline: List<Pair<Float, Float>> = emptyList()
+)
+
 /** Positions are fractions (0..1) of the floor-plan area. */
 data class Room(
     val id: String,
@@ -81,7 +106,9 @@ data class Room(
     val floor: Floor,
     val name: String,
     val x: Float, val y: Float, val w: Float, val h: Float,
-    val computers: Int
+    val computers: Int,
+    /** optional polygon (plan fractions) for rooms that are not plain rectangles (L-shapes etc.) */
+    val outline: List<Pair<Float, Float>> = emptyList()
 )
 
 data class Asset(
