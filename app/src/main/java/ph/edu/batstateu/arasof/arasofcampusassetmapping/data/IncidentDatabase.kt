@@ -17,6 +17,7 @@ import java.util.concurrent.Executors
  */
 class IncidentDatabase(context: Context) :
     SQLiteOpenHelper(context.applicationContext, "campus_assets.db", null, 2) {
+    val appContext: Context = context.applicationContext
 
     private val writer = Executors.newSingleThreadExecutor()
 
