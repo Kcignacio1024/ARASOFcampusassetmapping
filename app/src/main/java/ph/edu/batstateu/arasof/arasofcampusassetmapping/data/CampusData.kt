@@ -298,10 +298,35 @@ object CampusData {
         )
     )
 
+    private val planProviders = mapOf(
+        1 to Building1Plan::forFloor,
+        2 to Building2Plan::forFloor,
+        3 to Building3Plan::forFloor,
+        4 to Building4Plan::forFloor,
+        5 to Building5Plan::forFloor,
+        7 to Building7Plan::forFloor,
+        8 to Building8Plan::forFloor,
+        9 to Building9Plan::forFloor,
+        10 to Building10Plan::forFloor,
+        11 to Building11Plan::forFloor,
+        13 to Building13Plan::forFloor,
+        14 to Building14Plan::forFloor,
+        15 to Building15Plan::forFloor,
+        16 to Building16Plan::forFloor,
+        17 to Building17Plan::forFloor,
+        18 to Building18Plan::forFloor,
+        19 to Building19Plan::forFloor,
+        20 to Building20Plan::forFloor,
+        21 to Building21Plan::forFloor,
+        23 to Building23Plan::forFloor
+    )
+
     private val cache = mutableMapOf<Pair<Int, Floor>, FloorData>()
 
     fun floorData(b: Building, floor: Floor): FloorData =
-        cache.getOrPut(b.id to floor) { Building20Plan.forFloor(b.id, floor) ?: Building5Plan.forFloor(b.id, floor) ?: Building17Plan.forFloor(b.id, floor) ?: Building14Plan.forFloor(b.id, floor) ?: Building7Plan.forFloor(b.id, floor) ?: Building23Plan.forFloor(b.id, floor) ?: Building9Plan.forFloor(b.id, floor) ?: Building19Plan.forFloor(b.id, floor) ?: Building18Plan.forFloor(b.id, floor) ?: Building15Plan.forFloor(b.id, floor) ?: Building2Plan.forFloor(b.id, floor) ?: Building8Plan.forFloor(b.id, floor) ?: Building21Plan.forFloor(b.id, floor) ?: Building10Plan.forFloor(b.id, floor) ?: Building11Plan.forFloor(b.id, floor) ?: Building16Plan.forFloor(b.id, floor) ?: Building4Plan.forFloor(b.id, floor) ?: Building1Plan.forFloor(b.id, floor) ?: Building3Plan.forFloor(b.id, floor) ?: Building13Plan.forFloor(b.id, floor) ?: generate(b, floor) }
+        cache.getOrPut(b.id to floor) {
+            planProviders[b.id]?.invoke(b.id, floor) ?: generate(b, floor)
+        }
 
     /**
      * Generates a rough layout: 2 rows of rooms with a corridor between them.
