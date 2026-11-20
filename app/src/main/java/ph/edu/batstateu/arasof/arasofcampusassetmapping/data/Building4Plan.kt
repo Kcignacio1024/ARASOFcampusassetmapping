@@ -98,8 +98,6 @@ object Building4Plan {
             asset(AssetType.FAN, 390.0f, 610.0f, "hall", "")
             asset(AssetType.FAN, 590.0f, 600.0f, "hall", "")
             asset(AssetType.FAN, 790.0f, 600.0f, "hall", "")
-            asset(AssetType.WIFI, 330.0f, 300.0f, "hall", "")
-            asset(AssetType.WIFI, 850.0f, 640.0f, "hall", "")
             asset(AssetType.CCTV, 225.0f, 300.0f, "hall", "")
             asset(AssetType.CCTV, 915.0f, 300.0f, "hall", "")
             asset(AssetType.CCTV, 915.0f, 640.0f, "hall", "")
@@ -117,7 +115,6 @@ object Building4Plan {
             asset(AssetType.FAN, 520.0f, 832.0f, "amp", "")
             asset(AssetType.FAN, 620.0f, 832.0f, "amp", "")
             asset(AssetType.FAN, 700.0f, 832.0f, "amp", "")
-            asset(AssetType.WIFI, 568.0f, 690.0f, "amp", "")
             asset(AssetType.CCTV, 385.0f, 672.0f, "amp", "")
             asset(AssetType.CCTV, 745.0f, 672.0f, "amp", "")
             asset(AssetType.FIRE_ALARM, 568.0f, 745.0f, "amp", "")
@@ -129,8 +126,6 @@ object Building4Plan {
             asset(AssetType.FIRE_ALARM, 680.0f, 885.0f, "stall2", "")
             asset(AssetType.EXTINGUISHER, 645.0f, 885.0f, "stall2", "")
             asset(AssetType.EXIT, 568.0f, 968.0f, null, "South entrance / exit")
-            asset(AssetType.HYDRANT, 1100.0f, 520.0f, null, "Fire hydrant (outside, east of the entrance - estimated)")
-            asset(AssetType.HYDRANT, 900.0f, 880.0f, null, "Fire hydrant (outside, south-east - estimated)")
         }.build()
     }
 
@@ -153,7 +148,6 @@ object Building4Plan {
             asset(AssetType.FAN, 1515.0f, 490.0f, "hall2", "")
             asset(AssetType.FAN, 1330.0f, 667.0f, "hall2", "")
             asset(AssetType.FAN, 1515.0f, 667.0f, "hall2", "")
-            asset(AssetType.WIFI, 1650.0f, 300.0f, "hall2", "")
             asset(AssetType.CCTV, 1150.0f, 320.0f, "hall2", "")
             asset(AssetType.CCTV, 1690.0f, 860.0f, "hall2", "")
             asset(AssetType.FIRE_ALARM, 1400.0f, 860.0f, "hall2", "")

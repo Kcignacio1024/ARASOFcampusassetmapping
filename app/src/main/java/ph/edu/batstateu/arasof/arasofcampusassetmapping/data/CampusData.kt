@@ -13,14 +13,17 @@ data class FloorData(
 )
 
 object CampusData {
-    /** Size in pixels of res/drawable/campus_map.png. If you swap in a bigger or smaller picture of the
-     *  same shape you can keep these numbers: tap areas scale with the picture. */
+    /** Reference size of the map. The current picture (res/drawable/campus_map.png) is 884 x 1080, the same
+     *  shape, so these numbers are kept and the tap areas scale with the picture. If you swap in a bigger or
+     *  smaller picture of the same shape you can keep them too. */
     const val MAP_W = 1860f
     const val MAP_H = 2270f
 
     // Each building's tap area ("shapes") was traced from the map picture, in picture pixels.
-    // Buildings 1-25 are the numbers printed on the map. 26+ are the new things in the legend:
-    // electrical boxes, segregation stations and guard houses (information only, no floor plan).
+    // Buildings 1-25 are the numbers printed on the map. 27+ are the things in the legend:
+    // electrical boxes (27-29), segregation stations (30-31), guard houses (32-38) and water tanks (39-46).
+    // They are information only (no floor plan). Id 26 is not used any more (that electrical box is not
+    // on the current map).
     val buildings = listOf(
         Building(
             1, "Ibaan Building", Category.MIXED_USE, 1280f, 2040f, 287f, 109f, floorCount = 2, roomsPerRow = 3,
@@ -95,13 +98,13 @@ object CampusData {
             )
         ),
         Building(
-            13, "Lipa Building", Category.ACADEMIC, 1044f, 793f, 233f, 579f, floorCount = 3, roomsPerRow = 3,
+            13, "Lipa Building", Category.ACADEMIC, 1044f, 793f, 233f, 579f, floorCount = 4, roomsPerRow = 3,
             shapes = listOf(
                 listOf(1259f to 804f, 1068f to 793f, 1068f to 850f, 1082f to 853f, 1086f to 865f, 1084f to 886f, 1065f to 892f, 1064f to 937f, 1070f to 949f, 1071f to 969f, 1058f to 1037f, 1059f to 1074f, 1069f to 1099f, 1052f to 1149f, 1055f to 1192f, 1050f to 1198f, 1051f to 1233f, 1044f to 1282f, 1045f to 1321f, 1059f to 1324f, 1063f to 1331f, 1063f to 1358f, 1051f to 1365f, 1053f to 1372f, 1123f to 1370f, 1128f to 1363f, 1137f to 1167f, 1149f to 1123f, 1144f to 1037f, 1151f to 898f, 1156f to 892f, 1274f to 895f, 1277f to 865f, 1268f to 856f, 1268f to 809f)
             )
         ),
         Building(
-            14, "Student Council Building", Category.GENERAL, 1062f, 644f, 62f, 134f, floorCount = 2, roomsPerRow = 2,
+            14, "Student Council Building", Category.GENERAL, 1062f, 644f, 62f, 134f, floorCount = 1, roomsPerRow = 2,
             shapes = listOf(
                 listOf(1062f to 652f, 1100f to 644f, 1124f to 768f, 1086f to 778f)
             )
@@ -132,7 +135,7 @@ object CampusData {
             )
         ),
         Building(
-            19, "Lian Cafeteria", Category.AUXILIARY, 639f, 1151f, 232f, 126f, floorCount = 2, roomsPerRow = 2,
+            19, "Lian Cafeteria", Category.AUXILIARY, 639f, 1151f, 232f, 126f, floorCount = 1, roomsPerRow = 2,
             shapes = listOf(
                 listOf(639f to 1193f, 644f to 1241f, 655f to 1242f, 662f to 1252f, 681f to 1254f, 691f to 1261f, 709f to 1262f, 718f to 1251f, 754f to 1255f, 767f to 1273f, 806f to 1277f, 814f to 1270f, 816f to 1261f, 825f to 1266f, 855f to 1265f, 860f to 1244f, 869f to 1243f, 871f to 1223f, 861f to 1216f, 865f to 1176f, 811f to 1169f, 804f to 1161f, 770f to 1165f, 654f to 1151f, 648f to 1192f)
             )
@@ -174,25 +177,19 @@ object CampusData {
             )
         ),
         Building(
-            26, "Electrical box 1", Category.FACILITY, 1387f, 797f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Electrical box / electrical asset.",
-            shapes = listOf(
-                listOf(1447f to 827f, 1442f to 842f, 1432f to 852f, 1417f to 857f, 1402f to 852f, 1391f to 842f, 1387f to 827f, 1391f to 812f, 1402f to 801f, 1417f to 797f, 1432f to 801f, 1442f to 812f)
-            )
-        ),
-        Building(
-            27, "Electrical box 2", Category.FACILITY, 1387f, 1007f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Electrical box / electrical asset.",
+            27, "Electrical box 1", Category.FACILITY, 1387f, 1007f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Electrical box / electrical asset.",
             shapes = listOf(
                 listOf(1447f to 1037f, 1442f to 1052f, 1432f to 1062f, 1417f to 1067f, 1402f to 1062f, 1391f to 1052f, 1387f to 1037f, 1391f to 1022f, 1402f to 1011f, 1417f to 1007f, 1432f to 1011f, 1442f to 1022f)
             )
         ),
         Building(
-            28, "Electrical box 3", Category.FACILITY, 1477f, 1327f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Electrical box / electrical asset.",
+            28, "Electrical box 2", Category.FACILITY, 1477f, 1327f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Electrical box / electrical asset.",
             shapes = listOf(
                 listOf(1537f to 1357f, 1532f to 1372f, 1522f to 1382f, 1507f to 1387f, 1492f to 1382f, 1481f to 1372f, 1477f to 1357f, 1481f to 1342f, 1492f to 1331f, 1507f to 1327f, 1522f to 1331f, 1532f to 1342f)
             )
         ),
         Building(
-            29, "Electrical box 4", Category.FACILITY, 702f, 2066f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Electrical box / electrical asset.",
+            29, "Electrical box 3", Category.FACILITY, 702f, 2066f, 60f, 60f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Electrical box / electrical asset.",
             shapes = listOf(
                 listOf(762f to 2096f, 757f to 2111f, 747f to 2121f, 732f to 2126f, 717f to 2121f, 706f to 2111f, 702f to 2096f, 706f to 2081f, 717f to 2070f, 732f to 2066f, 747f to 2070f, 757f to 2081f)
             )
@@ -250,13 +247,61 @@ object CampusData {
             shapes = listOf(
                 listOf(1599f to 2161f, 1594f to 2176f, 1584f to 2186f, 1569f to 2191f, 1554f to 2186f, 1543f to 2176f, 1539f to 2161f, 1543f to 2146f, 1554f to 2135f, 1569f to 2131f, 1584f to 2135f, 1594f to 2146f)
             )
+        ),
+        Building(
+            39, "Water tank 1", Category.FACILITY, 1078f, 625f, 44f, 44f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Water tank (next to the Student Council Building (north)).",
+            shapes = listOf(
+                listOf(1122f to 647f, 1119f to 658f, 1111f to 666f, 1100f to 669f, 1089f to 666f, 1081f to 658f, 1078f to 647f, 1081f to 636f, 1089f to 628f, 1100f to 625f, 1111f to 628f, 1119f to 636f)
+            )
+        ),
+        Building(
+            40, "Water tank 2", Category.FACILITY, 1174f, 713f, 82f, 82f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Water tank (large tank next to the Student Council Building).",
+            shapes = listOf(
+                listOf(1174f to 713f, 1256f to 713f, 1256f to 794f, 1174f to 794f)
+            )
+        ),
+        Building(
+            41, "Water tank 3", Category.FACILITY, 1068f, 756f, 44f, 44f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Water tank (next to the Student Council Building (south)).",
+            shapes = listOf(
+                listOf(1112f to 778f, 1109f to 789f, 1101f to 797f, 1090f to 800f, 1079f to 797f, 1071f to 789f, 1068f to 778f, 1071f to 767f, 1079f to 759f, 1090f to 756f, 1101f to 759f, 1109f to 767f)
+            )
+        ),
+        Building(
+            42, "Water tank 4", Category.FACILITY, 757f, 1113f, 44f, 44f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Water tank (next to the Lian Cafeteria).",
+            shapes = listOf(
+                listOf(801f to 1135f, 798f to 1146f, 790f to 1154f, 779f to 1157f, 768f to 1154f, 759f to 1146f, 757f to 1135f, 759f to 1124f, 768f to 1116f, 779f to 1113f, 790f to 1116f, 798f to 1124f)
+            )
+        ),
+        Building(
+            43, "Water tank 5", Category.FACILITY, 1417f, 1456f, 44f, 44f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Water tank (next to the Infirmary).",
+            shapes = listOf(
+                listOf(1461f to 1478f, 1458f to 1489f, 1450f to 1497f, 1439f to 1500f, 1428f to 1497f, 1420f to 1489f, 1417f to 1478f, 1420f to 1467f, 1428f to 1459f, 1439f to 1456f, 1450f to 1459f, 1458f to 1467f)
+            )
+        ),
+        Building(
+            44, "Water tank 6", Category.FACILITY, 809f, 1691f, 44f, 44f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Water tank (beside the San Juan Building (north)).",
+            shapes = listOf(
+                listOf(853f to 1713f, 850f to 1724f, 842f to 1732f, 831f to 1735f, 820f to 1732f, 812f to 1724f, 809f to 1713f, 812f to 1702f, 820f to 1694f, 831f to 1691f, 842f to 1694f, 850f to 1702f)
+            )
+        ),
+        Building(
+            45, "Water tank 7", Category.FACILITY, 790f, 1737f, 44f, 44f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Water tank (beside the San Juan Building (south)).",
+            shapes = listOf(
+                listOf(834f to 1759f, 831f to 1770f, 823f to 1778f, 812f to 1781f, 801f to 1778f, 793f to 1770f, 790f to 1759f, 793f to 1748f, 801f to 1740f, 812f to 1737f, 823f to 1740f, 831f to 1748f)
+            )
+        ),
+        Building(
+            46, "Water tank 8", Category.FACILITY, 1552f, 2065f, 44f, 44f, floorCount = 1, roomsPerRow = 0, hasPlan = false, info = "Water tank (next to the Ibaan Building).",
+            shapes = listOf(
+                listOf(1596f to 2087f, 1593f to 2098f, 1585f to 2106f, 1574f to 2109f, 1563f to 2106f, 1555f to 2098f, 1552f to 2087f, 1555f to 2076f, 1563f to 2068f, 1574f to 2065f, 1585f to 2068f, 1593f to 2076f)
+            )
         )
     )
 
     private val cache = mutableMapOf<Pair<Int, Floor>, FloorData>()
 
     fun floorData(b: Building, floor: Floor): FloorData =
-        cache.getOrPut(b.id to floor) { Building15Plan.forFloor(b.id, floor) ?: Building2Plan.forFloor(b.id, floor) ?: Building8Plan.forFloor(b.id, floor) ?: Building21Plan.forFloor(b.id, floor) ?: Building10Plan.forFloor(b.id, floor) ?: Building11Plan.forFloor(b.id, floor) ?: Building16Plan.forFloor(b.id, floor) ?: Building4Plan.forFloor(b.id, floor) ?: Building1Plan.forFloor(b.id, floor) ?: Building3Plan.forFloor(b.id, floor) ?: generate(b, floor) }
+        cache.getOrPut(b.id to floor) { Building20Plan.forFloor(b.id, floor) ?: Building5Plan.forFloor(b.id, floor) ?: Building17Plan.forFloor(b.id, floor) ?: Building14Plan.forFloor(b.id, floor) ?: Building7Plan.forFloor(b.id, floor) ?: Building23Plan.forFloor(b.id, floor) ?: Building9Plan.forFloor(b.id, floor) ?: Building19Plan.forFloor(b.id, floor) ?: Building18Plan.forFloor(b.id, floor) ?: Building15Plan.forFloor(b.id, floor) ?: Building2Plan.forFloor(b.id, floor) ?: Building8Plan.forFloor(b.id, floor) ?: Building21Plan.forFloor(b.id, floor) ?: Building10Plan.forFloor(b.id, floor) ?: Building11Plan.forFloor(b.id, floor) ?: Building16Plan.forFloor(b.id, floor) ?: Building4Plan.forFloor(b.id, floor) ?: Building1Plan.forFloor(b.id, floor) ?: Building3Plan.forFloor(b.id, floor) ?: Building13Plan.forFloor(b.id, floor) ?: generate(b, floor) }
 
     /**
      * Generates a rough layout: 2 rows of rooms with a corridor between them.

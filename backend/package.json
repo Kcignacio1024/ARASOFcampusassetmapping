@@ -1,0 +1,21 @@
+{
+  "name": "arasof-campus-backend",
+  "version": "1.0.0",
+  "description": "Mini JSON Backend for ARASOF Campus Asset Mapping",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "jest --runInBand",
+    "create-admin": "node scripts/create-admin.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.4"
+  }
+}

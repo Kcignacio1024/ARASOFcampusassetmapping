@@ -22,7 +22,17 @@ enum class AssetType(val label: String, val symbol: String, val studentVisible: 
     TABLE_SET("Table with seats", "TS", true),
     SEAT("Seat", "S", true),
     TABLE("Table (standing dining)", "T", true),
-    FAN("Electric / ceiling fan", "F", true)
+    FAN("Electric / ceiling fan", "F", true),
+    SPRINKLER("Fire sprinkler", "SP", true),
+    WHITEBOARD("Whiteboard", "WB", true),
+    MICROPHONE("Microphone", "MIC", true),
+    MIC_STAND("Microphone stand", "MS", true),
+    SPEAKER("Speaker", "SK", true),
+    BASKETBALL_BOARD("Basketball shooting board", "BB", true),
+    BASKETBALL("Basketball", "BK", true),
+    VOLLEYBALL("Volleyball", "VB", true),
+    ATM("ATM", "ATM", true),
+    ID_SCANNER("ID scanner", "ID", true)
 }
 
 enum class IncidentStatus { OPEN, RESOLVED }
@@ -111,6 +121,13 @@ data class Room(
     val outline: List<Pair<Float, Float>> = emptyList()
 )
 
+enum class AssetCondition(val label: String) {
+    GOOD("Good"),
+    FAIR("Fair"),
+    POOR("Poor"),
+    OUT_OF_SERVICE("Out of service")
+}
+
 data class Asset(
     val id: String,
     val buildingId: Int,
@@ -118,12 +135,23 @@ data class Asset(
     val type: AssetType,
     val x: Float, val y: Float,
     val label: String,
-    val roomId: String? = null
+    val roomId: String? = null,
+    /** false = no icon on the floor plan; the asset is still listed when its room is tapped */
+    val showIcon: Boolean = true,
+    var tag: String = "",
+    var locationNote: String? = null,
+    var brand: String? = null,
+    var model: String? = null,
+    var serialNo: String? = null,
+    var installedOn: String? = null,
+    var condition: AssetCondition = AssetCondition.GOOD,
+    var lastServiceOn: String? = null
 )
 
 data class Incident(
-    val id: Int,
+    val id: String,
     val assetId: String,
+    val assetTag: String = "",
     val assetLabel: String,
     val buildingId: Int,
     val buildingName: String,
@@ -132,7 +160,13 @@ data class Incident(
     val status: IncidentStatus = IncidentStatus.OPEN,
     val reportedBy: String,
     val reportedAt: Long,
+    val updatedAt: Long = reportedAt,
     val resolvedBy: String? = null,
     val resolvedAt: Long? = null,
-    val resolutionNote: String? = null
-)
+    val resolutionNote: String? = null,
+    /** Other people who reported the SAME problem (one open report per asset: they add themselves to it). */
+    val alsoReportedBy: List<String> = emptyList()
+) {
+    /** How many people reported this problem (the first reporter + everyone who added themselves). */
+    val reportCount: Int get() = 1 + alsoReportedBy.size
+}

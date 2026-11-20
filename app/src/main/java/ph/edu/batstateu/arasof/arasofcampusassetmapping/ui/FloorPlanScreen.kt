@@ -1,10 +1,15 @@
 package ph.edu.batstateu.arasof.arasofcampusassetmapping.ui
 
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.GenericShape
@@ -14,19 +19,30 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.isShiftPressed
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import ph.edu.batstateu.arasof.arasofcampusassetmapping.data.CampusData
 import ph.edu.batstateu.arasof.arasofcampusassetmapping.model.*
 import ph.edu.batstateu.arasof.arasofcampusassetmapping.viewmodel.CampusViewModel
+
+private const val MAX_ZOOM = 10f
 
 fun AssetType.color(): Color = when (this) {
     AssetType.EXIT -> Color(0xFF2E7D32)
@@ -44,6 +60,22 @@ fun AssetType.color(): Color = when (this) {
     AssetType.SEAT -> Color(0xFFEF8F00)
     AssetType.TABLE -> Color(0xFF00ACC1)
     AssetType.FAN -> Color(0xFF26A69A)
+    AssetType.SPRINKLER -> Color(0xFF039BE5)
+    AssetType.WHITEBOARD -> Color(0xFF757575)
+    AssetType.MICROPHONE -> Color(0xFFD81B60)
+    AssetType.MIC_STAND -> Color(0xFFAD1457)
+    AssetType.SPEAKER -> Color(0xFF3949AB)
+    AssetType.BASKETBALL_BOARD -> Color(0xFFE64A19)
+    AssetType.BASKETBALL -> Color(0xFFF4511E)
+    AssetType.VOLLEYBALL -> Color(0xFF7CB342)
+    AssetType.ATM -> Color(0xFF1E88E5)
+    AssetType.ID_SCANNER -> Color(0xFF00897B)
+}
+
+private fun clampOffset(o: Offset, s: Float, size: IntSize): Offset {
+    val mx = size.width * (s - 1f) / 2f
+    val my = size.height * (s - 1f) / 2f
+    return Offset(o.x.coerceIn(-mx, mx), o.y.coerceIn(-my, my))
 }
 
 @Composable
@@ -52,18 +84,72 @@ fun FloorPlanScreen(vm: CampusViewModel) {
     val floor = vm.selectedFloor
     val data = remember(building, floor) { CampusData.floorData(building, floor) }
     var selectedAsset by remember { mutableStateOf<Asset?>(null) }
+    var highlightedAsset by remember { mutableStateOf<Asset?>(null) }
     var selectedRoom by remember { mutableStateOf<Room?>(null) }
     var onlyIssues by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
+    var showFloorAssets by remember { mutableStateOf(false) }
     val cs = MaterialTheme.colorScheme
 
-    // Different map per user type: students never see IT / security assets (CCTV, computers, equipment).
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+    var boxSize by remember { mutableStateOf(IntSize.Zero) }
+    val coroutineScope = rememberCoroutineScope()
+
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0.9f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseAlpha"
+    )
+
+    // Smoothly center and focus camera on highlighted asset
+    LaunchedEffect(highlightedAsset) {
+        highlightedAsset?.let { a ->
+            if (boxSize.width > 0 && boxSize.height > 0) {
+                val targetScale = 3.5f
+                val ratio = data.aspect
+                val planW = minOf(boxSize.width.toFloat(), boxSize.height.toFloat() * ratio)
+                val planH = planW / ratio
+                val ax = planW * a.x
+                val ay = planH * a.y
+                val targetOffsetX = boxSize.width / 2f - ax * targetScale
+                val targetOffsetY = boxSize.height / 2f - ay * targetScale
+                val targetOffset = clampOffset(Offset(targetOffsetX, targetOffsetY), targetScale, boxSize)
+
+                val animScale = Animatable(scale)
+                val animOffset = Animatable(offset, Offset.VectorConverter)
+
+                coroutineScope.launch {
+                    animScale.animateTo(targetScale, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)) { scale = value }
+                }
+                coroutineScope.launch {
+                    animOffset.animateTo(targetOffset, spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessLow)) { offset = value }
+                }
+            }
+        }
+    }
+
+    fun zoomAt(focus: Offset, factor: Float) {
+        val c = Offset(boxSize.width / 2f, boxSize.height / 2f)
+        val ns = (scale * factor).coerceIn(1f, MAX_ZOOM)
+        val rel = focus - c
+        offset = clampOffset(rel - (rel - offset) * (ns / scale), ns, boxSize)
+        scale = ns
+    }
+
     val visibleAssets = data.assets.filter { vm.isMaintenance || it.type.studentVisible }
-    // Settings: asset icons off = no icons on the plan (assets are still listed when a room is tapped)
-    val shownAssets =
-        if (!vm.showAssetIcons) emptyList()
-        else visibleAssets.filter { !onlyIssues || vm.openIncidentFor(it.id) != null }
-    val legendTypes = AssetType.values().filter { t -> visibleAssets.any { it.type == t } }
+    val shownAssets = visibleAssets.filter {
+        it.showIcon && (
+                if (vm.showAssetIcons) (!onlyIssues || vm.openIncidentFor(it.id) != null)
+                else vm.openIncidentFor(it.id) != null
+                )
+    }
+    val legendTypes = AssetType.values().filter { t -> visibleAssets.any { it.type == t && it.showIcon } }
 
     Column(Modifier.fillMaxSize().padding(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -75,9 +161,13 @@ fun FloorPlanScreen(vm: CampusViewModel) {
             TextButton(onClick = { showSettings = true }) { Text("Settings") }
         }
         if (building.floors.size > 1) {
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 building.floors.forEach { f ->
-                    FilterChip(selected = f == floor, onClick = { vm.switchFloor(f) }, label = { Text(f.label) })
+                    FilterChip(selected = f == floor, onClick = { vm.switchFloor(f); highlightedAsset = null }, label = { Text(f.label) })
                 }
             }
         } else {
@@ -90,6 +180,12 @@ fun FloorPlanScreen(vm: CampusViewModel) {
                 Text("Show only reported issues")
             }
         }
+        val hasWholeFloorRoom = data.rooms.any { it.w >= 0.99f && it.h >= 0.99f }
+        if (!hasWholeFloorRoom) {
+            FilledTonalButton(onClick = { showFloorAssets = true }, modifier = Modifier.fillMaxWidth()) {
+                Text("All assets on this floor (${visibleAssets.size})")
+            }
+        }
         data.note?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant) }
         Spacer(Modifier.height(6.dp))
 
@@ -100,10 +196,47 @@ fun FloorPlanScreen(vm: CampusViewModel) {
             val planW = minOf(maxWidth, maxHeight * data.aspect)
             val planH = planW / data.aspect
 
-            ZoomPanBox(Modifier.fillMaxSize()) { s ->
+            Box(
+                Modifier.fillMaxSize()
+                    .clipToBounds()
+                    .onSizeChanged { boxSize = it }
+                    .pointerInput(Unit) {
+                        detectTransformGestures { centroid, pan, zoom, _ ->
+                            val c = Offset(size.width / 2f, size.height / 2f)
+                            val ns = (scale * zoom).coerceIn(1f, MAX_ZOOM)
+                            val rel = centroid - c
+                            val moved = rel - (rel - offset) * (ns / scale) + pan
+                            scale = ns
+                            offset = clampOffset(moved, ns, size)
+                        }
+                    }
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                if (event.type == PointerEventType.Scroll) {
+                                    val ch = event.changes.first()
+                                    val d = ch.scrollDelta
+                                    if (event.keyboardModifiers.isShiftPressed) {
+                                        val move = if (d.x != 0f) d.x else d.y
+                                        offset = clampOffset(offset + Offset(-move * 60f, 0f), scale, size)
+                                        ch.consume()
+                                    } else if (d.y != 0f) {
+                                        zoomAt(ch.position, if (d.y < 0f) 1.2f else 1f / 1.2f)
+                                        ch.consume()
+                                    }
+                                }
+                            }
+                        }
+                    }
+            ) {
                 Box(
                     Modifier.align(Alignment.Center).size(planW, planH)
-                        .border((1.5f / s).dp, cs.outline)
+                        .graphicsLayer(
+                            scaleX = scale, scaleY = scale,
+                            translationX = offset.x, translationY = offset.y
+                        )
+                        .border((1.5f / sIf(scale)).dp, cs.outline)
                 ) {
                     // corridors / stairs
                     data.zones.forEach { z ->
@@ -123,34 +256,55 @@ fun FloorPlanScreen(vm: CampusViewModel) {
                                 zShape
                             ),
                             contentAlignment = Alignment.Center
-                        ) { ScaledLabel(z.name, zw, zh, s, vm.roomTextSp * 0.8f) }
+                        ) { ScaledLabel(z.name, zw, zh, scale, vm.roomTextSp * 0.8f) }
                     }
-                    // rooms (tap for details)
+                    // rooms
                     data.rooms.forEach { r ->
                         val rw = planW * r.w
                         val rh = planH * r.h
-                        // L-shaped rooms use their outline so they never overlap their neighbours
                         val shape: Shape =
                             if (r.outline.isEmpty()) RectangleShape else polyShape(r.outline, r.x, r.y, r.w, r.h)
                         Box(
                             Modifier.offset(planW * r.x, planH * r.y).size(rw, rh)
                                 .then(if (r.outline.isEmpty()) Modifier else Modifier.clip(shape))
                                 .background(cs.primaryContainer.copy(alpha = 0.35f), shape)
-                                .border((1.2f / s).dp, cs.outline, shape)
+                                .border((1.2f / sIf(scale)).dp, cs.outline, shape)
                                 .clickable { selectedRoom = r },
                             contentAlignment = Alignment.Center
-                        ) { ScaledLabel(r.name, rw, rh, s, vm.roomTextSp) }
+                        ) { ScaledLabel(r.name, rw, rh, scale, vm.roomTextSp) }
                     }
-                    // assets: keep a readable, constant size while zooming
-                    val f = if (s >= 3f) 1f else 0.6f + 0.2f * (s - 1f)
+                    // assets
+                    val f = if (scale >= 3f) 1f else 0.6f + 0.2f * (scale - 1f)
                     shownAssets.forEach { a ->
                         AssetMarker(
                             asset = a, hasIssue = vm.openIncidentFor(a.id) != null,
                             onClick = { selectedAsset = a },
                             modifier = Modifier
                                 .offset(planW * a.x - 16.dp, planH * a.y - 16.dp)
-                                .graphicsLayer(scaleX = f / s, scaleY = f / s)
+                                .graphicsLayer(scaleX = f / scale, scaleY = f / scale)
                         )
+                    }
+
+                    // Pulsing ring highlight for located asset
+                    highlightedAsset?.let { ha ->
+                        if (ha.floor == floor && ha.buildingId == building.id) {
+                            Canvas(Modifier.fillMaxSize()) {
+                                val ax = size.width * ha.x
+                                val ay = size.height * ha.y
+                                val accent = Color(0xFFFF6F00)
+                                drawCircle(
+                                    color = accent.copy(alpha = pulseAlpha),
+                                    radius = 36f,
+                                    center = Offset(ax, ay),
+                                    style = Stroke(width = 4f)
+                                )
+                                drawCircle(
+                                    color = accent,
+                                    radius = 16f,
+                                    center = Offset(ax, ay)
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -170,11 +324,7 @@ fun FloorPlanScreen(vm: CampusViewModel) {
             }
         }
         Text(
-            if (vm.showAssetIcons)
-                "Zoom in to see all room names. Tap a room for details, or an asset to report a problem. " +
-                        "A black ring with ! means a problem was reported."
-            else
-                "Asset icons are off (Settings). Tap a room to see its assets and report a problem.",
+            "Tap a room to list its assets individually, with tags and 'Locate on plan'.",
             fontSize = 11.sp, color = cs.onSurfaceVariant
         )
     }
@@ -186,13 +336,36 @@ fun FloorPlanScreen(vm: CampusViewModel) {
             assets = data.assets.filter { it.roomId == room.id && (vm.isMaintenance || it.type.studentVisible) },
             vm = vm,
             onAssetClick = { selectedRoom = null; selectedAsset = it },
+            onLocateOnPlan = { asset ->
+                selectedRoom = null
+                highlightedAsset = asset
+            },
             onDismiss = { selectedRoom = null }
         )
     }
-    selectedAsset?.let { AssetDialog(it, vm) { selectedAsset = null } }
+    if (showFloorAssets) {
+        val floorRoom = Room(
+            id = "${building.id}-${floor.ordinal}-ALL", buildingId = building.id, floor = floor,
+            name = "${floor.label} - all assets", x = 0f, y = 0f, w = 1f, h = 1f,
+            computers = data.rooms.sumOf { it.computers }
+        )
+        RoomSheet(
+            room = floorRoom,
+            assets = visibleAssets,
+            vm = vm,
+            onAssetClick = { showFloorAssets = false; selectedAsset = it },
+            onLocateOnPlan = { asset ->
+                showFloorAssets = false
+                highlightedAsset = asset
+            },
+            onDismiss = { showFloorAssets = false }
+        )
+    }
+    selectedAsset?.let { AssetDetailsDialog(it, vm) { selectedAsset = null } }
 }
 
-/** Shape from a polygon given in plan fractions, relative to the box (x, y, w, h). */
+private fun sIf(s: Float) = s
+
 private fun polyShape(points: List<Pair<Float, Float>>, x: Float, y: Float, w: Float, h: Float): Shape =
     GenericShape { size, _ ->
         points.forEachIndexed { i, (px, py) ->
@@ -203,11 +376,6 @@ private fun polyShape(points: List<Pair<Float, Float>>, x: Float, y: Float, w: F
         close()
     }
 
-/**
- * A room name that stays the same readable size while the plan is zoomed. It uses the size chosen in
- * Settings, and shrinks a little only if the room is too small for it. It is hidden when even the
- * smallest size does not fit (zoom in to reveal it).
- */
 @Composable
 private fun ScaledLabel(text: String, w: Dp, h: Dp, s: Float, targetSp: Float) {
     val size = fitFontSize(text, (w * s).value - 8f, (h * s).value - 4f, targetSp, 9f) ?: return
@@ -226,7 +394,6 @@ private fun ScaledLabel(text: String, w: Dp, h: Dp, s: Float, targetSp: Float) {
     }
 }
 
-/** Largest font size (sp) from [targetSp] down to [minSp] at which [text] fits a box (dp), or null. */
 private fun fitFontSize(text: String, availW: Float, availH: Float, targetSp: Float, minSp: Float): Float? {
     if (availW < 24f || availH < 12f) return null
     val words = text.split(' ').filter { it.isNotEmpty() }
@@ -267,43 +434,190 @@ private fun AssetMarker(asset: Asset, hasIssue: Boolean, onClick: () -> Unit, mo
 }
 
 @Composable
-fun AssetDialog(asset: Asset, vm: CampusViewModel, onDismiss: () -> Unit) {
+fun AssetDetailsDialog(asset: Asset, vm: CampusViewModel, onDismiss: () -> Unit) {
     val incident = vm.openIncidentFor(asset.id)
-    var text by remember { mutableStateOf("") }
+    var isEditing by remember { mutableStateOf(false) }
+
+    var tag by remember { mutableStateOf(asset.tag) }
+    var locationNote by remember { mutableStateOf(asset.locationNote ?: "") }
+    var brand by remember { mutableStateOf(asset.brand ?: "") }
+    var model by remember { mutableStateOf(asset.model ?: "") }
+    var serialNo by remember { mutableStateOf(asset.serialNo ?: "") }
+    var installedOn by remember { mutableStateOf(asset.installedOn ?: "") }
+    var condition by remember { mutableStateOf(asset.condition) }
+    var lastServiceOn by remember { mutableStateOf(asset.lastServiceOn ?: "") }
+
+    var reportText by remember { mutableStateOf("") }
+    var fixNote by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(asset.label) },
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(asset.label, modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                if (asset.tag.isNotBlank()) {
+                    Surface(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.primaryContainer) {
+                        Text(asset.tag, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    }
+                }
+            }
+        },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(asset.type.label, style = MaterialTheme.typography.labelMedium)
-                if (incident == null) {
-                    Text(if (vm.isMaintenance) "No open issues. This asset is marked as working." else "Is something wrong with this asset?")
-                    OutlinedTextField(
-                        value = text, onValueChange = { text = it },
-                        label = { Text("Describe the problem") }, modifier = Modifier.fillMaxWidth()
-                    )
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.heightIn(max = 450.dp)) {
+                item {
+                    Text(asset.type.label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                }
+
+                if (isEditing && vm.isMaintenance) {
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(value = tag, onValueChange = { tag = it }, label = { Text("Asset Tag") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(value = locationNote, onValueChange = { locationNote = it }, label = { Text("Location Note") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(value = brand, onValueChange = { brand = it }, label = { Text("Brand") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(value = model, onValueChange = { model = it }, label = { Text("Model") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(value = serialNo, onValueChange = { serialNo = it }, label = { Text("Serial No") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(value = installedOn, onValueChange = { installedOn = it }, label = { Text("Installed On (YYYY-MM-DD)") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(value = lastServiceOn, onValueChange = { lastServiceOn = it }, label = { Text("Last Service On (YYYY-MM-DD)") }, modifier = Modifier.fillMaxWidth())
+
+                            Text("Condition", style = MaterialTheme.typography.labelMedium)
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                AssetCondition.values().forEach { cond ->
+                                    FilterChip(
+                                        selected = condition == cond,
+                                        onClick = { condition = cond },
+                                        label = { Text(cond.label) }
+                                    )
+                                }
+                            }
+                        }
+                    }
                 } else {
-                    Text("Reported by ${incident.reportedBy}", fontWeight = FontWeight.Medium)
-                    Text(incident.description)
-                    if (vm.isMaintenance) {
-                        OutlinedTextField(
-                            value = text, onValueChange = { text = it },
-                            label = { Text("Fix note (optional)") }, modifier = Modifier.fillMaxWidth()
-                        )
-                    } else {
-                        Text("Maintenance has been notified and will update this once fixed.")
+                    item {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                DetailRow("Tag", asset.tag.ifBlank { "N/A" })
+                                DetailRow("Location Note", asset.locationNote?.ifBlank { null } ?: "None")
+                                DetailRow("Brand", asset.brand?.ifBlank { null } ?: "N/A")
+                                DetailRow("Model", asset.model?.ifBlank { null } ?: "N/A")
+                                DetailRow("Serial No", asset.serialNo?.ifBlank { null } ?: "N/A")
+                                DetailRow("Installed On", asset.installedOn?.ifBlank { null } ?: "N/A")
+                                DetailRow("Condition", asset.condition.label)
+                                DetailRow("Last Service On", asset.lastServiceOn?.ifBlank { null } ?: "N/A")
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Spacer(Modifier.height(4.dp))
+                    Text("Open Reports & Incidents", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                }
+
+                if (incident != null) {
+                    item {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text("Reported by ${incident.reportedBy}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onErrorContainer)
+                                Text(incident.description, color = MaterialTheme.colorScheme.onErrorContainer)
+                                if (incident.alsoReportedBy.isNotEmpty()) {
+                                    Text(
+                                        "Also reported by ${incident.alsoReportedBy.joinToString(", ")} · ${incident.reportCount} people in total",
+                                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                }
+                                if (!vm.isMaintenance) {
+                                    if (!vm.hasReported(incident)) {
+                                        OutlinedButton(onClick = { vm.confirmIssue(incident) }) { Text("I have this problem too") }
+                                    } else {
+                                        Text(
+                                            "You reported this problem. Maintenance has been notified.",
+                                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer
+                                        )
+                                    }
+                                }
+                                if (vm.isMaintenance) {
+                                    Spacer(Modifier.height(4.dp))
+                                    OutlinedTextField(
+                                        value = fixNote,
+                                        onValueChange = { fixNote = it },
+                                        label = { Text("Fix note") },
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                    Button(onClick = { vm.resolve(incident, fixNote); onDismiss() }) {
+                                        Text("Mark as fixed")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    item {
+                        if (!isEditing) {
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text("No open issues.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                OutlinedTextField(
+                                    value = reportText,
+                                    onValueChange = { reportText = it },
+                                    label = { Text("Report a problem with this asset") },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                Button(
+                                    onClick = { vm.reportIssue(asset, reportText); onDismiss() },
+                                    enabled = reportText.isNotBlank()
+                                ) {
+                                    Text("Submit Report")
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
         confirmButton = {
-            when {
-                incident == null -> Button(onClick = { vm.reportIssue(asset, text); onDismiss() }) { Text("Report problem") }
-                vm.isMaintenance -> Button(onClick = { vm.resolve(incident, text); onDismiss() }) { Text("Mark as fixed") }
-                else -> TextButton(onClick = onDismiss) { Text("OK") }
+            if (vm.isMaintenance) {
+                if (isEditing) {
+                    Button(onClick = {
+                        asset.tag = tag
+                        asset.locationNote = locationNote.ifBlank { null }
+                        asset.brand = brand.ifBlank { null }
+                        asset.model = model.ifBlank { null }
+                        asset.serialNo = serialNo.ifBlank { null }
+                        asset.installedOn = installedOn.ifBlank { null }
+                        asset.condition = condition
+                        asset.lastServiceOn = lastServiceOn.ifBlank { null }
+                        isEditing = false
+                    }) {
+                        Text("Save Changes")
+                    }
+                } else {
+                    Button(onClick = { isEditing = true }) {
+                        Text("Edit Asset")
+                    }
+                }
+            } else {
+                TextButton(onClick = onDismiss) { Text("Close") }
             }
         },
-        dismissButton = { if (incident == null || vm.isMaintenance) TextButton(onClick = onDismiss) { Text("Cancel") } }
+        dismissButton = {
+            if (isEditing) {
+                TextButton(onClick = { isEditing = false }) { Text("Cancel") }
+            } else {
+                TextButton(onClick = onDismiss) { Text("Close") }
+            }
+        }
     )
+}
+
+@Composable
+private fun DetailRow(label: String, value: String) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
+    }
 }

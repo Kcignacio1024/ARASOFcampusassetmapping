@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import ph.edu.batstateu.arasof.arasofcampusassetmapping.data.IncidentDatabase
 import ph.edu.batstateu.arasof.arasofcampusassetmapping.ui.*
 import ph.edu.batstateu.arasof.arasofcampusassetmapping.viewmodel.CampusViewModel
 import ph.edu.batstateu.arasof.arasofcampusassetmapping.viewmodel.Screen
@@ -22,11 +23,15 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
         vm.loadSettings(
-            showIcons = prefs.getBoolean("show_asset_icons", true),
+            showIcons = prefs.getBoolean("show_asset_icons_summary", false),
             roomSp = prefs.getFloat("room_text_sp", 15f)
         ) { showIcons, roomSp ->
-            prefs.edit().putBoolean("show_asset_icons", showIcons).putFloat("room_text_sp", roomSp).apply()
+            prefs.edit()
+                .putBoolean("show_asset_icons_summary", showIcons)
+                .putFloat("room_text_sp", roomSp)
+                .apply()
         }
+        vm.attachDatabase(IncidentDatabase(this)) // saved incidents come back after the app is closed
         setContent {
             // Swap MaterialTheme for the generated theme in ui/theme if you prefer it
             MaterialTheme {

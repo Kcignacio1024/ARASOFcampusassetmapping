@@ -38,11 +38,11 @@ class PlanBuilder(
         zones += Zone(name, kind, fx(l), fy(t), (r - l) / pw, (b - t) / ph, outline.map { fx(it.first) to fy(it.second) })
     }
 
-    fun asset(type: AssetType, px: Float, py: Float, roomKey: String?, detail: String = "") {
+    fun asset(type: AssetType, px: Float, py: Float, roomKey: String?, detail: String = "", icon: Boolean = true) {
         val roomName = rooms.firstOrNull { it.id == "$prefix-$roomKey" }?.name
         val label = detail.ifBlank { "${type.label} · $roomName" }
         n++
-        assets += Asset("$prefix-A$n", buildingId, floor, type, fx(px), fy(py), label, roomKey?.let { "$prefix-$it" })
+        assets += Asset("$prefix-A$n", buildingId, floor, type, fx(px), fy(py), label, roomKey?.let { "$prefix-$it" }, icon)
     }
 
     fun build(note: String? = null) = FloorData(rooms.toList(), assets.toList(), zones.toList(), pw / ph, note)

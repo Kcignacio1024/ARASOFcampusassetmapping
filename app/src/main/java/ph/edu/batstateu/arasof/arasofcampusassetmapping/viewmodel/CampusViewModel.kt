@@ -7,11 +7,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import ph.edu.batstateu.arasof.arasofcampusassetmapping.data.CampusData
+import ph.edu.batstateu.arasof.arasofcampusassetmapping.data.IncidentDatabase
 import ph.edu.batstateu.arasof.arasofcampusassetmapping.model.*
 
 enum class Screen { LOGIN, MAP, FLOOR, REPORTS }
 
 class CampusViewModel : ViewModel() {
+
+    init {
+        ph.edu.batstateu.arasof.arasofcampusassetmapping.data.AssetTagGenerator.populateTags()
+    }
 
     companion object {
         // DEMO ONLY. Replace with real authentication (e.g. Firebase Auth + a "maintenance" claim).
@@ -26,6 +31,17 @@ class CampusViewModel : ViewModel() {
 
     val incidents = mutableStateListOf<Incident>()
 
+    // ---- local database: reported incidents are saved on the phone and reloaded at start-up ----
+    private var database: IncidentDatabase? = null
+
+    /** Called once from MainActivity. Loads the saved incidents; later calls (screen rotation) do nothing. */
+    fun attachDatabase(db: IncidentDatabase) {
+        if (database != null) return
+        database = db
+        incidents.clear()
+        incidents.addAll(db.loadAll())
+    }
+
     // ---- settings (saved on the phone, see MainActivity) ----
     /** true = show the asset icons (logos) on the floor plans, false = no icons */
     var showAssetIcons by mutableStateOf(true); private set
@@ -38,7 +54,6 @@ class CampusViewModel : ViewModel() {
     }
     fun updateShowAssetIcons(value: Boolean) { showAssetIcons = value; saveSettings?.invoke(value, roomTextSp) }
     fun updateRoomTextSp(value: Float) { roomTextSp = value; saveSettings?.invoke(showAssetIcons, value) }
-    private var nextId = 1
 
     val isMaintenance get() = role == Role.MAINTENANCE
 
@@ -79,16 +94,38 @@ class CampusViewModel : ViewModel() {
 
     /** Students (and maintenance) can report a problem with an asset. */
     fun reportIssue(asset: Asset, description: String) {
-        if (openIncidentFor(asset.id) != null) return
+        // one open report per asset: a second reporter (or a double tap) joins the existing report instead
+        openIncidentFor(asset.id)?.let { confirmIssue(it); return }
         val b = CampusData.buildings.first { it.id == asset.buildingId }
-        incidents.add(
-            Incident(
-                id = nextId++, assetId = asset.id, assetLabel = asset.label,
-                buildingId = b.id, buildingName = b.name, floor = asset.floor,
-                description = description.ifBlank { "No details provided" },
-                reportedBy = userName, reportedAt = System.currentTimeMillis()
-            )
+        val incident = Incident(
+            id = java.util.UUID.randomUUID().toString(),
+            assetId = asset.id,
+            assetTag = asset.tag,
+            assetLabel = asset.label,
+            buildingId = b.id, buildingName = b.name, floor = asset.floor,
+            description = description.ifBlank { "No details provided" },
+            reportedBy = userName, reportedAt = System.currentTimeMillis()
         )
+        incidents.add(incident)
+        database?.save(incident)
+    }
+
+    /** True if the logged-in user is already counted on this report (first reporter or added later). */
+    fun hasReported(incident: Incident): Boolean =
+        incident.reportedBy.equals(userName, ignoreCase = true) ||
+                incident.alsoReportedBy.any { it.equals(userName, ignoreCase = true) }
+
+    /** "I have this problem too": adds the user to the existing open report (no duplicate report). */
+    fun confirmIssue(incident: Incident) {
+        if (incident.status != IncidentStatus.OPEN || userName.isBlank() || hasReported(incident)) return
+        val i = incidents.indexOfFirst { it.id == incident.id }
+        if (i < 0) return
+        val updated = incidents[i].copy(
+            alsoReportedBy = incidents[i].alsoReportedBy + userName,
+            updatedAt = System.currentTimeMillis()
+        )
+        incidents[i] = updated
+        database?.save(updated)
     }
 
     /** Only maintenance may mark an incident as fixed. */
@@ -96,9 +133,12 @@ class CampusViewModel : ViewModel() {
         if (!isMaintenance) return
         val i = incidents.indexOfFirst { it.id == incident.id }
         if (i < 0) return
-        incidents[i] = incidents[i].copy(
+        val now = System.currentTimeMillis()
+        val updated = incidents[i].copy(
             status = IncidentStatus.RESOLVED, resolvedBy = userName,
-            resolvedAt = System.currentTimeMillis(), resolutionNote = note.ifBlank { null }
+            resolvedAt = now, updatedAt = now, resolutionNote = note.ifBlank { null }
         )
+        incidents[i] = updated
+        database?.save(updated)
     }
 }
